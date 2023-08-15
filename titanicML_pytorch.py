@@ -10,7 +10,7 @@ import joblib
 randomnumber = 5201314
 
 # Data preprocessing (turning data into numbers)
-dataset = pd.read_csv("ML_related/largerTitanicData.csv")
+dataset = pd.read_csv("TitanicData.csv") #loading the csv file
 mean_age = dataset["Age"].mean()
 
 dataset["Age"].fillna(mean_age, inplace=True)
