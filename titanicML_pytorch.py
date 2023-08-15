@@ -89,11 +89,6 @@ for id, pred, true in zip(ids, y_test_pred_class, y_test):
     print(f'{id}\t\t{pred}\t\t {true}')
 print(f"{criterion(y_test_pred, torch.from_numpy(y_test).float().view(-1, 1)):.3e}")
 
-columnname = dataset.drop(
-    ["Survived", "Name", "Ticket", "Cabin", "id", "'boat'", "'body'", "home.dest", "Unnamed: 15", "Unnamed: 16",
-     "Cabins", "Aged"], axis=1)
-print(columnname)
-
 # Predict given data
 given = [3, 2, 4, 1, 1, 16.7, 1, 1]
 given = np.array(given)
