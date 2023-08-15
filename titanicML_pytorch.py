@@ -5,24 +5,28 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 import joblib
 
 randomnumber = 5201314
 
 # Data preprocessing (turning data into numbers)
-dataset = pd.read_csv("TitanicData.csv") #loading the csv file
+dataset = pd.read_csv("ML_related/largerTitanicData.csv")
 mean_age = dataset["Age"].mean()
 
 dataset["Age"].fillna(mean_age, inplace=True)
-dataset["Embarked"] = dataset["Embarked"].map({"S": 3, "C": 1, "Q": 2, np.nan: 0, "?": 0})
+onehotencoder = OneHotEncoder()
+onehotencoder.fit(dataset["Embarked"].to_numpy().reshape(-1, 1))
+embarkencoded = onehotencoder.transform(dataset["Embarked"].to_numpy().reshape(-1, 1)).toarray()
+dataset[['Unknown', 'C', "Q","S"]] = pd.DataFrame(embarkencoded, index=dataset.index)
 dataset["Sex"] = dataset["Sex"].map({"male": 1, "female": 2})
 dataset["CabinLetter"] = dataset["Cabin"].str[0]
-dataset["CabinLetter"] = dataset["CabinLetter"].map({"T": 8, "A": 7, "B": 6, "C": 5, "D": 4, "E": 3, "F": 2, "G": 1, np.nan: 0})
+dataset["CabinLetter"] = dataset["CabinLetter"].map({ np.nan: 0,"A" :1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"T":8})
 dataset["Fare"] = dataset["Fare"].replace("?", np.nan)
 y = dataset["Survived"]
 x = dataset.drop(
     ["Survived", "Name", "Ticket", "Cabin", "id", "'boat'", "'body'", "home.dest", "Unnamed: 15", "Unnamed: 16",
-     "Cabins", "Aged"], axis=1)
+     "Cabins", "Aged","Embarked"], axis=1)
 for i in x.columns:
     x[i] = x[i].replace(np.nan, 0)
 y = y.to_numpy()
@@ -61,14 +65,14 @@ optimizer = optim.Adam(model.parameters(), lr=0.05)
 cost_hist = []
 
 # Training loop
-for i in range(50000):
+for i in range(5000):
     optimizer.zero_grad()
     y_pred = model(x_train)
     loss = criterion(y_pred, y_train)
     loss.backward()
     optimizer.step()
     cost_hist.append(loss.item())
-    if (i + 1) % 10000 == 0:
+    if (i + 1) % 1000 == 0:
         print(f'iteration: {i + 1:4}, loss: {loss.item():.3e}')
 
 # Print the learned weights and biases
@@ -89,8 +93,12 @@ for id, pred, true in zip(ids, y_test_pred_class, y_test):
     print(f'{id}\t\t{pred}\t\t {true}')
 print(f"{criterion(y_test_pred, torch.from_numpy(y_test).float().view(-1, 1)):.3e}")
 
+# Save the model
+torch.save(model, "ML_related/result.pth")
+
+#types = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'CabinLetter','Embark(0:Unknown,1:C,2:Q,3:S)']
 # Predict given data
-given = [3, 2, 4, 1, 1, 16.7, 1, 1]
+given = [3, 2, 4, 1, 1, 16.7, 1,0,1,0,0]
 given = np.array(given)
 given = given.reshape(1, -1)
 given = scaler.transform(given)
